@@ -1,0 +1,119 @@
+body {
+  background-color: #789395;
+  margin: 0;
+  text-align: center;
+  font-family:"Roboto", sans-serif;
+  margin-bottom: 0;
+}
+
+h1 {
+  width: 25%;
+  margin: 50px auto 0;
+  font-family: "Rubik Iso", cursive, sans-serif;
+  font-size: 3.5rem;
+}
+
+h2 {
+  font-family: "Dancing Script", cursive, sans-serif;
+  font-size: 1rem;
+}
+
+h3 {
+  font-family: 'Dancing Script', cursive, sans-serif;
+  font-size: 1rem;
+}
+
+img {
+  align-items: center;
+}
+
+hr {
+  width: 20%;
+  height: 0;
+  color: #789395;
+  border-width: 8px;
+  border-style: dotted;
+}
+
+/*******************classes*************/
+.Top-Container {
+  background-color: #8FBDD3;
+  position: relative;
+  padding-top: 140px;
+}
+
+.p1 {
+  Width: 200px;
+}
+.p2{
+  font-size: 2.5rem;
+}
+.middle-container {
+  background-color: #BE8C63;
+  position: static;
+  margin-left: 12.5%;
+  margin-right: 12.5%;
+  height: 950px;
+  Width: 75%;
+}
+
+.bottom-container {
+  background-color: #A97155;
+  position: static;
+  margin-left: 15%;
+  margin-right: 15%;
+  margin-bottom: 0;
+  height: 25px;
+  Width: 70%;
+}
+
+.footer-link {
+  position: relative;
+  margin-top: 800px;
+}
+
+.pro {
+  font-style: italic;
+  text-decoration: underline;
+}
+
+.bottom-cloud {
+  position: absolute;
+  left: 300px;
+  bottom: 300px;
+}
+
+.top-cloud {
+  position: absolute;
+  right: 300px;
+  top: 50px;
+}
+
+.maxskills {
+  height: 50px;
+  width: 200px;
+}
+.card-draw{
+  height: 50px;
+  width: 50px;
+}
+
+.skill-row {
+  position: static;
+  margin-left: 12.5%;
+  margin-right: 12.5%;
+}
+
+.outro {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.spinwheel{
+  height: 125px;
+  width: 125px;
+}
+
+.Winner{
+  font-size: large;
+}
