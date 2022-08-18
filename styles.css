@@ -2,9 +2,9 @@ body {
   background-color: #000000;
   margin: 0;
   text-align: center;
-  font-family: "Metal Mania", cursive;
+  font-family:  "Metal Mania", cursive; sans-serif;
   margin-bottom: 0;
-  color:#C21010
+  color:#C21010;
 }
 
 h1 {
@@ -30,7 +30,7 @@ img {
 hr {
   width: 20%;
   height: 0;
-  color: #2A0944;
+  color: #820000;
   border-width: 8px;
   border-style: dotted;
 }
