@@ -2,7 +2,7 @@ body {
   background-color: #000000;
   margin: 0;
   text-align: center;
-  font-family:"Roboto", sans-serif;
+  font-family:"Metal Mania", cursive;
   margin-bottom: 0;
   color:#C21010
 }
@@ -30,7 +30,7 @@ img {
 hr {
   width: 20%;
   height: 0;
-  color: #789395;
+  color: #2A0944;
   border-width: 8px;
   border-style: dotted;
 }
