@@ -1,10 +1,9 @@
 body {
-  background-color: #000000;
+  background-color: #789395;
   margin: 0;
   text-align: center;
-  font-family:  "Metal Mania", cursive; sans-serif;
+  font-family:"Roboto", sans-serif;
   margin-bottom: 0;
-  color:#C21010;
 }
 
 h1 {
@@ -12,13 +11,13 @@ h1 {
 }
 
 h2 {
-  font-family:  "Metal Mania", cursive; sans-serif;
+  font-family: "Dancing Script", cursive, sans-serif;
   font-size: 1rem;
   font-weight: normal;
 }
 
 h3 {
-  font-family:  "Metal Mania", cursive; sans-serif;
+  font-family: 'Dancing Script', cursive, sans-serif;
   font-size: 1rem;
   color: #B35A19;
 }
@@ -30,7 +29,7 @@ img {
 hr {
   width: 20%;
   height: 0;
-  color: #820000;
+  color: #789395;
   border-width: 8px;
   border-style: dotted;
 }
