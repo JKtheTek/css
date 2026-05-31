@@ -465,6 +465,7 @@ function getStartDT() {
   if (!dv) return null;
   const [y,mo,d] = dv.split('-').map(Number);
   const [h,m] = tv.split(':').map(Number);
+  if (y < 2020 || y > 2100) return null; // reject out-of-range years
   return new Date(y, mo-1, d, h, m);
 }
 
@@ -552,6 +553,22 @@ function onToggle(id) {
 }
 
 // ── Chart ──────────────────────────────────────────────────────
+function xBounds(datasets) {
+  const ts = [];
+  for (const ds of datasets) {
+    for (const d of ds.data) {
+      if (d && Array.isArray(d)) { ts.push(d[0], d[1]); }
+    }
+  }
+  if (!ts.length) {
+    const now = Date.now();
+    return [now, now + 8 * 3600000]; // fallback: 8-hour window from now
+  }
+  const mn = Math.min(...ts), mx = Math.max(...ts);
+  const pad = Math.max((mx - mn) * 0.06, 1800000); // ≥30 min padding each side
+  return [mn - pad, mx + pad];
+}
+
 function hexAlpha(hex, a) {
   const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
@@ -614,9 +631,13 @@ function updateChart(allUnits) {
     };
   });
 
+  const [xMin, xMax] = xBounds(datasets);
+
   if (ganttChart) {
     ganttChart.data.labels = labels;
     ganttChart.data.datasets = datasets;
+    ganttChart.options.scales.x.min = xMin;
+    ganttChart.options.scales.x.max = xMax;
     ganttChart.update('active');
     return;
   }
@@ -664,7 +685,9 @@ function updateChart(allUnits) {
       scales: {
         x: {
           type: 'time',
-          time: {displayFormats:{hour:'MM/dd HH:mm',day:'MM/dd'},tooltipFormat:'MM/dd HH:mm'},
+          min: xMin,
+          max: xMax,
+          time: {displayFormats:{hour:'MM/dd HH:mm',day:'MM/dd',week:'MM/dd/yy'},tooltipFormat:'MM/dd/yy HH:mm'},
           grid: {color:'rgba(100,160,200,.06)'},
           ticks: {color:'#3a6080',maxRotation:30,font:{size:10,family:'Roboto Mono'}}
         },
@@ -992,12 +1015,15 @@ function exportToExcel() {
 document.addEventListener('DOMContentLoaded', () => {
   buildTable();
   const today = new Date();
+  const yr = today.getFullYear();
   const wd = today.getDay();
   const skip = wd===0?1:wd===6?2:0;
   const def = new Date(today);
   def.setDate(today.getDate()+skip);
-  document.getElementById('startDate').value =
-    `${def.getFullYear()}-${pad(def.getMonth()+1)}-${pad(def.getDate())}`;
+  const dateEl = document.getElementById('startDate');
+  dateEl.min = `${yr}-01-01`;
+  dateEl.max = `${yr + 5}-12-31`;
+  dateEl.value = `${def.getFullYear()}-${pad(def.getMonth()+1)}-${pad(def.getDate())}`;
   document.getElementById('startTime').value = '08:00';
   loadCfg();
   buildLegend(1);
