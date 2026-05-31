@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manufacturing Line Simulator — Radeus Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg:#070d18;--surface:#0b1825;--surface2:#0f2030;--card:#0d1e30;
+  --border:#1a3550;--border2:#264d70;
+  --accent:#0093d0;--accent2:#00b4f0;--glow:rgba(0,147,208,.14);
+  --orange:#c8691a;--orange2:#e07820;--oglow:rgba(200,105,26,.14);
+  --text:#c0d8ec;--text2:#5e8aa8;--text3:#2e5570;
+  --green:#18c070;--red:#d83838;--yellow:#e8a820;
+  --hh:58px;--ch:220px;--r:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-size:13px;min-height:100vh}
+a{color:var(--accent)}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:200;height:var(--hh);background:#030810;
+  border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:14px}
+.logo-hex{width:34px;height:34px;background:var(--accent);flex-shrink:0;
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff}
+.logo-text{line-height:1}
+.logo-main{display:block;font-size:15px;font-weight:800;letter-spacing:3.5px;color:#fff;text-transform:uppercase}
+.logo-sub{display:block;font-size:9px;letter-spacing:2.5px;color:var(--text2);margin-top:3px;text-transform:uppercase}
+.hspace{flex:1}
+.btn-hdr{background:var(--orange);border:none;color:#fff;padding:7px 16px;border-radius:4px;
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;
+  cursor:pointer;transition:.2s}
+.btn-hdr:hover{background:var(--orange2)}
+
+/* ── CHART BANNER ── */
+.chart-banner{position:sticky;top:var(--hh);z-index:190;background:var(--surface);
+  border-bottom:2px solid var(--border);padding:10px 22px 14px}
+.banner-top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+.banner-title{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text2)}
+.legend{display:flex;gap:14px;margin-left:auto}
+.leg{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2)}
+.leg-dot{width:13px;height:10px;border-radius:2px}
+.leg-dot.est{background:rgba(0,147,208,.55);border:1.5px solid var(--accent)}
+.leg-dot.act{background:rgba(200,105,26,.55);border:1.5px solid var(--orange)}
+.chart-wrap{height:var(--ch);position:relative}
+.chart-empty{display:flex;align-items:center;justify-content:center;height:100%;
+  color:var(--text3);font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+
+/* ── MAIN ── */
+main{padding:20px;max-width:1500px;margin:0 auto}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.card-hdr{display:flex;align-items:center;gap:10px;padding:12px 18px;
+  border-bottom:1px solid var(--border);background:var(--surface2)}
+.card-hdr h2{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--text2)}
+.accentbar{width:3px;height:16px;background:var(--accent);border-radius:2px;flex-shrink:0}
+.accentbar.orange{background:var(--orange)}
+.card-body{padding:18px}
+
+/* ── CONFIG GRID ── */
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px}
+.cfg-sep{grid-column:1/-1;border:none;border-top:1px solid var(--border);margin:4px 0}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)}
+.fi{background:var(--bg);border:1px solid var(--border);border-radius:4px;
+  padding:7px 10px;color:var(--text);font-family:'Roboto Mono',monospace;font-size:13px;
+  outline:none;transition:.2s;width:100%}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--glow)}
+.brk-row{display:flex;gap:6px;align-items:center}
+.brk-row span{font-size:10px;color:var(--text3)}
+.brk-row .fi{flex:1}
+.cfg-section-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text3);padding:6px 0 2px;grid-column:1/-1}
+
+/* ── STATIONS TABLE ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text2);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);
+  white-space:nowrap;background:var(--surface2)}
+tbody td{padding:6px 10px;border-bottom:1px solid rgba(26,53,80,.4);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(0,147,208,.03)}
+.sname{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px;white-space:nowrap}
+.badge{font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 5px;border-radius:3px}
+.badge.req{background:rgba(0,147,208,.12);border:1px solid rgba(0,147,208,.25);color:var(--accent)}
+.badge.opt{background:rgba(94,138,168,.1);border:1px solid rgba(94,138,168,.2);color:var(--text2)}
+
+/* Toggle */
+.tog{position:relative;display:inline-block;width:36px;height:19px}
+.tog input{opacity:0;width:0;height:0}
+.tslider{position:absolute;inset:0;background:var(--border2);border-radius:20px;cursor:pointer;transition:.2s}
+.tslider::after{content:'';position:absolute;width:13px;height:13px;background:var(--text2);
+  border-radius:50%;left:3px;top:3px;transition:.2s}
+.tog input:checked+.tslider{background:rgba(0,147,208,.25)}
+.tog input:checked+.tslider::after{transform:translateX(17px);background:var(--accent)}
+.always-on{color:var(--accent);font-size:16px}
+
+.ni{background:var(--bg);border:1px solid var(--border);border-radius:4px;
+  padding:5px 8px;color:var(--text);font-family:'Roboto Mono',monospace;font-size:13px;
+  width:82px;outline:none;transition:.2s}
+.ni:focus{border-color:var(--accent)}
+.ni.act-inp{border-color:rgba(200,105,26,.35)}
+.ni.act-inp:focus{border-color:var(--orange)}
+
+.rc{font-family:'Roboto Mono',monospace;font-size:11px;color:var(--text2);white-space:nowrap}
+.rc.over{color:var(--red);font-weight:600}
+.rc.under{color:var(--green);font-weight:600}
+.rc.exact{color:var(--accent);font-weight:600}
+
+.row-off{opacity:.35}
+.row-off td:not(.col-en){pointer-events:none}
+
+/* ── SUMMARY ── */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:14px 14px;text-align:center}
+.stat-val{font-family:'Roboto Mono',monospace;font-size:20px;font-weight:500;
+  color:var(--accent);margin-bottom:4px;line-height:1.1}
+.stat-lbl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
+  letter-spacing:1.5px;border-top:1px solid var(--border);margin-top:8px}
+
+/* scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-hex">RL</div>
+  <div class="logo-text">
+    <span class="logo-main">Radeus Labs</span>
+    <span class="logo-sub">Manufacturing Line Simulator</span>
+  </div>
+  <div class="hspace"></div>
+  <button class="btn-hdr" onclick="exportToExcel()">&#x2193; Export Excel</button>
+</header>
+
+<!-- CHART BANNER -->
+<div class="chart-banner">
+  <div class="banner-top">
+    <span class="banner-title">Production Timeline</span>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot est"></div>Estimated</div>
+      <div class="leg"><div class="leg-dot act"></div>Actual</div>
+    </div>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-empty" id="chartEmpty">Enter station times and a start date to generate timeline</div>
+    <canvas id="ganttChart" style="display:none"></canvas>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+
+<!-- CONFIG -->
+<div class="card">
+  <div class="card-hdr">
+    <div class="accentbar"></div>
+    <h2>Schedule Configuration</h2>
+  </div>
+  <div class="card-body">
+    <div class="cfg-grid">
+      <div class="cfg-section-label">Job Start</div>
+      <div class="fg"><label>Start Date</label><input class="fi" type="date" id="startDate" oninput="recalc()"></div>
+      <div class="fg"><label>Start Time</label><input class="fi" type="time" id="startTime" value="08:00" oninput="recalc()"></div>
+
+      <div class="cfg-sep"></div>
+      <div class="cfg-section-label">Daily Schedule</div>
+      <div class="fg"><label>Build Start</label><input class="fi" type="time" id="buildStart" value="08:00" oninput="recalc()"></div>
+      <div class="fg"><label>Regular Day End</label><input class="fi" type="time" id="dayEnd" value="16:30" oninput="recalc()"></div>
+      <div class="fg"><label>Short Friday End</label><input class="fi" type="time" id="shortEnd" value="15:30" oninput="recalc()"></div>
+
+      <div class="cfg-sep"></div>
+      <div class="cfg-section-label">Breaks</div>
+      <div class="fg"><label>Morning Break</label>
+        <div class="brk-row">
+          <input class="fi" type="time" id="brk1s" value="09:00" oninput="recalc()">
+          <span>→</span>
+          <input class="fi" type="time" id="brk1e" value="09:15" oninput="recalc()">
+        </div>
+      </div>
+      <div class="fg"><label>Lunch Break</label>
+        <div class="brk-row">
+          <input class="fi" type="time" id="lncs" value="11:30" oninput="recalc()">
+          <span>→</span>
+          <input class="fi" type="time" id="lnce" value="12:00" oninput="recalc()">
+        </div>
+      </div>
+      <div class="fg"><label>Afternoon Break</label>
+        <div class="brk-row">
+          <input class="fi" type="time" id="brk2s" value="14:30" oninput="recalc()">
+          <span>→</span>
+          <input class="fi" type="time" id="brk2e" value="14:45" oninput="recalc()">
+        </div>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--text3);margin-top:12px;letter-spacing:.5px">
+      Schedule: Mon–Thu regular &nbsp;|&nbsp; Every other Friday 7am–15:30 &nbsp;|&nbsp; Alternating Friday off &nbsp;|&nbsp;
+      Reference off-Friday: <strong style="color:var(--text2)">Jun 6, 2025</strong>
+    </p>
+  </div>
+</div>
+
+<!-- STATIONS -->
+<div class="card">
+  <div class="card-hdr">
+    <div class="accentbar orange"></div>
+    <h2>Build Stations</h2>
+    <span style="font-size:10px;color:var(--text3);margin-left:6px">Toggle optional stations · Enter durations in minutes</span>
+  </div>
+  <div class="card-body" style="padding:0">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Station</th>
+            <th class="col-en">Active</th>
+            <th>Est. Duration (min)</th>
+            <th>Actual Duration (min)</th>
+            <th>Est. Start</th>
+            <th>Est. End</th>
+            <th>Act. Start</th>
+            <th>Act. End</th>
+            <th>Variance</th>
+          </tr>
+        </thead>
+        <tbody id="stbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="card">
+  <div class="card-hdr">
+    <div class="accentbar"></div>
+    <h2>Schedule Summary</h2>
+  </div>
+  <div class="card-body">
+    <div class="sum-grid" id="sumGrid">
+      <div class="stat"><div class="stat-val" id="sv-estTotal">—</div><div class="stat-lbl">Total Est. Duration</div></div>
+      <div class="stat"><div class="stat-val" id="sv-actTotal">—</div><div class="stat-lbl">Total Act. Duration</div></div>
+      <div class="stat"><div class="stat-val" id="sv-variance">—</div><div class="stat-lbl">Overall Variance</div></div>
+      <div class="stat"><div class="stat-val" id="sv-estComp" style="font-size:13px">—</div><div class="stat-lbl">Est. Completion</div></div>
+      <div class="stat"><div class="stat-val" id="sv-actComp" style="font-size:13px">—</div><div class="stat-lbl">Act. Completion</div></div>
+      <div class="stat"><div class="stat-val" id="sv-workDays">—</div><div class="stat-lbl">Working Days</div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+<footer>RADEUS LABS INC &nbsp;·&nbsp; POWAY, CA &nbsp;·&nbsp; MANUFACTURING OPERATIONS</footer>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// Station definitions
+// ─────────────────────────────────────────────────────────────
+const STATIONS = [
+  {id:'kit',    name:'Kit',     opt:false},
+  {id:'build1', name:'Build 1', opt:false},
+  {id:'build2', name:'Build 2', opt:true},
+  {id:'build3', name:'Build 3', opt:true},
+  {id:'build4', name:'Build 4', opt:true},
+  {id:'build5', name:'Build 5', opt:true},
+  {id:'qa1',    name:'QA 1',    opt:false},
+  {id:'test1',  name:'Test 1',  opt:false},
+  {id:'qa2',    name:'QA 2',    opt:false},
+  {id:'test3',  name:'Test 3',  opt:true},
+];
+
+// Reference: June 6, 2025 is an OFF Friday (alternating from there)
+// Note: June 5 2026 would also be OFF (52 weeks later = same parity)
+const REF_OFF_FRI = new Date(2025, 5, 6); // June 6, 2025
+
+// ─────────────────────────────────────────────────────────────
+// Schedule helpers
+// ─────────────────────────────────────────────────────────────
+let cfg = {};
+
+function loadCfg() {
+  const pt = id => {
+    const v = document.getElementById(id)?.value || '';
+    const [h,m] = v.split(':').map(Number);
+    return {h:h||0, m:m||0};
+  };
+  cfg = {
+    buildStart: pt('buildStart'),
+    dayEnd:     pt('dayEnd'),
+    shortEnd:   pt('shortEnd'),
+    breaks:[
+      {s:pt('brk1s'), e:pt('brk1e')},
+      {s:pt('lncs'),  e:pt('lnce')},
+      {s:pt('brk2s'), e:pt('brk2e')},
+    ]
+  };
+}
+
+function isFriOff(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const ref = new Date(REF_OFF_FRI.getFullYear(), REF_OFF_FRI.getMonth(), REF_OFF_FRI.getDate());
+  const wks = Math.round((d - ref) / 604800000);
+  return ((wks % 2) + 2) % 2 === 0;
+}
+
+function dayKind(date) {
+  const wd = date.getDay();
+  if (wd === 0 || wd === 6) return 'off';
+  if (wd <= 4) return 'reg';
+  return isFriOff(date) ? 'off' : 'short';
+}
+
+function segs(date) {
+  const k = dayKind(date);
+  if (k === 'off') return [];
+  const [y,mo,d] = [date.getFullYear(), date.getMonth(), date.getDate()];
+  const mk = (h,m) => new Date(y,mo,d,h,m,0,0);
+  const endHM = k === 'short' ? cfg.shortEnd : cfg.dayEnd;
+  const end = mk(endHM.h, endHM.m);
+  const result = [];
+  let cur = mk(cfg.buildStart.h, cfg.buildStart.m);
+  for (const brk of cfg.breaks) {
+    const bs = mk(brk.s.h, brk.s.m);
+    const be = mk(brk.e.h, brk.e.m);
+    if (cur < bs) {
+      const segEnd = bs < end ? bs : end;
+      if (cur < segEnd) result.push({s:new Date(cur), e:segEnd});
+    }
+    cur = be > end ? end : be;
+  }
+  if (cur < end) result.push({s:new Date(cur), e:end});
+  return result.filter(sg => sg.s < sg.e);
+}
+
+function nextWorkStart(date) {
+  let d = new Date(date.getFullYear(), date.getMonth(), date.getDate()+1,
+                   cfg.buildStart.h, cfg.buildStart.m, 0, 0);
+  for (let i=0; i<14 && dayKind(d)==='off'; i++) d.setDate(d.getDate()+1);
+  return d;
+}
+
+function snapToWork(dt) {
+  let d = new Date(dt);
+  for (let i=0; i<14 && dayKind(d)==='off'; i++) {
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1, cfg.buildStart.h, cfg.buildStart.m);
+  }
+  const sg = segs(d);
+  if (!sg.length) return nextWorkStart(d);
+  if (d < sg[0].s) return new Date(sg[0].s);
+  if (d >= sg[sg.length-1].e) return nextWorkStart(d);
+  for (const brk of cfg.breaks) {
+    const [y,mo,dy] = [d.getFullYear(), d.getMonth(), d.getDate()];
+    const bs = new Date(y,mo,dy,brk.s.h,brk.s.m);
+    const be = new Date(y,mo,dy,brk.e.h,brk.e.m);
+    if (d >= bs && d < be) return be;
+  }
+  return d;
+}
+
+function addMins(from, mins) {
+  let d = new Date(from);
+  let rem = mins;
+  let guard = 600;
+  while (rem > 0 && guard-- > 0) {
+    const sg = segs(d);
+    let done = false;
+    for (const seg of sg) {
+      if (d >= seg.e) continue;
+      if (d < seg.s) d = new Date(seg.s);
+      const avail = (seg.e - d) / 60000;
+      if (rem <= avail) { d = new Date(d.getTime() + rem*60000); rem = 0; done = true; break; }
+      rem -= avail; d = new Date(seg.e);
+    }
+    if (rem > 0) d = nextWorkStart(d);
+  }
+  return d;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Build station rows
+// ─────────────────────────────────────────────────────────────
+function buildTable() {
+  const tb = document.getElementById('stbody');
+  tb.innerHTML = STATIONS.map(st => `
+    <tr id="row_${st.id}" class="${st.opt?'opt-row':''}">
+      <td><div class="sname">
+        <span class="badge ${st.opt?'opt':'req'}">${st.opt?'OPT':'REQ'}</span>${st.name}
+      </div></td>
+      <td class="col-en">${st.opt
+        ? `<label class="tog"><input type="checkbox" id="en_${st.id}" checked onchange="onToggle('${st.id}')"><span class="tslider"></span></label>`
+        : `<span class="always-on" title="Required">&#11044;</span>`}</td>
+      <td><input class="ni" type="number" id="est_${st.id}" min="0" step="1" placeholder="0" oninput="recalc()"></td>
+      <td><input class="ni act-inp" type="number" id="act_${st.id}" min="0" step="1" placeholder="—" oninput="recalc()"></td>
+      <td class="rc" id="es_${st.id}">—</td>
+      <td class="rc" id="ee_${st.id}">—</td>
+      <td class="rc" id="as_${st.id}">—</td>
+      <td class="rc" id="ae_${st.id}">—</td>
+      <td class="rc" id="vr_${st.id}">—</td>
+    </tr>`).join('');
+}
+
+function onToggle(id) {
+  const on = document.getElementById(`en_${id}`)?.checked;
+  const row = document.getElementById(`row_${id}`);
+  if (row) row.classList.toggle('row-off', !on);
+  recalc();
+}
+
+// ─────────────────────────────────────────────────────────────
+// Main calculation
+// ─────────────────────────────────────────────────────────────
+function getStartDT() {
+  const dv = document.getElementById('startDate').value;
+  const tv = document.getElementById('startTime').value || '08:00';
+  if (!dv) return null;
+  const [y,mo,d] = dv.split('-').map(Number);
+  const [h,m] = tv.split(':').map(Number);
+  return new Date(y, mo-1, d, h, m);
+}
+
+function getActiveSts() {
+  return STATIONS.map(st => {
+    const en = !st.opt || (document.getElementById(`en_${st.id}`)?.checked ?? true);
+    const est = parseFloat(document.getElementById(`est_${st.id}`)?.value);
+    const actRaw = document.getElementById(`act_${st.id}`)?.value;
+    const act = actRaw !== '' && actRaw !== undefined ? parseFloat(actRaw) : null;
+    return {...st, en, est: isNaN(est)?0:est, act: (act!==null && !isNaN(act))?act:null};
+  }).filter(s => s.en);
+}
+
+function calculate() {
+  const raw = getStartDT();
+  if (!raw) return null;
+  loadCfg();
+  const start = snapToWork(raw);
+  const sts = getActiveSts();
+  const rows = [];
+  let ec = new Date(start), ac = new Date(start);
+
+  for (const st of sts) {
+    const estS = new Date(ec);
+    const estE = addMins(estS, st.est);
+    const actS = new Date(ac);
+    const actE = st.act !== null ? addMins(actS, st.act) : null;
+    rows.push({...st, estS, estE, actS, actE});
+    ec = new Date(estE);
+    ac = actE ? new Date(actE) : new Date(estE);
+  }
+  return rows;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Formatting
+// ─────────────────────────────────────────────────────────────
+const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function pad(n){return String(n).padStart(2,'0')}
+function fdt(d){
+  if(!d) return '—';
+  return `${DN[d.getDay()]} ${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmins(m){
+  if(m===null||m===undefined) return '—';
+  const h=Math.floor(Math.abs(m)/60), mn=Math.abs(m)%60;
+  const sign = m<0?'-':(m>0?'+':'');
+  return h>0?`${sign}${h}h ${mn}m`:`${sign}${mn}m`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Chart
+// ─────────────────────────────────────────────────────────────
+let chart = null;
+
+function updateChart(rows) {
+  const labels = rows.map(r => r.name);
+  const estData = rows.map(r => [r.estS.getTime(), r.estE.getTime()]);
+  const actData = rows.map(r => r.actE ? [r.actS.getTime(), r.actE.getTime()] : null);
+
+  document.getElementById('chartEmpty').style.display = 'none';
+  const cv = document.getElementById('ganttChart');
+  cv.style.display = 'block';
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = estData;
+    chart.data.datasets[1].data = actData;
+    chart.update('active');
+    return;
+  }
+
+  chart = new Chart(cv.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Estimated',
+          data: estData,
+          backgroundColor: 'rgba(0,147,208,.5)',
+          borderColor: '#0093d0',
+          borderWidth: 1.5,
+          borderRadius: 3,
+          barPercentage: .55,
+        },
+        {
+          label: 'Actual',
+          data: actData,
+          backgroundColor: 'rgba(200,105,26,.5)',
+          borderColor: '#c8691a',
+          borderWidth: 1.5,
+          borderRadius: 3,
+          barPercentage: .55,
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {duration: 250},
+      plugins: {
+        legend: {display: false},
+        tooltip: {
+          backgroundColor: '#0b1825',
+          borderColor: '#1a3550',
+          borderWidth: 1,
+          titleColor: '#c0d8ec',
+          bodyColor: '#5e8aa8',
+          callbacks: {
+            label: ctx => {
+              if (!ctx.raw || !Array.isArray(ctx.raw)) return null;
+              const [s,e] = ctx.raw;
+              const durMin = Math.round((e-s)/60000);
+              return `${ctx.dataset.label}: ${fdt(new Date(s))} → ${fdt(new Date(e))}  (${fmins(durMin)})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            displayFormats: {hour:'MM/dd HH:mm', day:'MM/dd', week:'MM/dd'},
+            tooltipFormat: 'MM/dd HH:mm'
+          },
+          grid: {color:'rgba(100,160,200,.06)'},
+          ticks: {color:'#3a6080', maxRotation:30, font:{size:10,family:'Roboto Mono'}}
+        },
+        y: {
+          grid: {color:'rgba(100,160,200,.06)'},
+          ticks: {color:'#c0d8ec', font:{size:11,family:'Montserrat',weight:'600'}}
+        }
+      }
+    }
+  });
+}
+
+function hideChart() {
+  document.getElementById('chartEmpty').style.display = 'flex';
+  document.getElementById('ganttChart').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────────────
+// Result table update
+// ─────────────────────────────────────────────────────────────
+function updateTable(rows) {
+  // Reset all rows first
+  for (const st of STATIONS) {
+    for (const p of ['es','ee','as','ae','vr']) {
+      const el = document.getElementById(`${p}_${st.id}`);
+      if (el) { el.textContent = '—'; el.className = 'rc'; }
+    }
+  }
+  for (const r of rows) {
+    setText(`es_${r.id}`, fdt(r.estS));
+    setText(`ee_${r.id}`, fdt(r.estE));
+    setText(`as_${r.id}`, r.actE ? fdt(r.actS) : '—');
+    setText(`ae_${r.id}`, r.actE ? fdt(r.actE) : '—');
+
+    const varEl = document.getElementById(`vr_${r.id}`);
+    if (r.act !== null) {
+      const v = r.act - r.est;
+      varEl.textContent = fmins(v);
+      varEl.className = `rc ${v>0?'over':v<0?'under':'exact'}`;
+    }
+  }
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Summary update
+// ─────────────────────────────────────────────────────────────
+function countWorkDays(a, b) {
+  let n=0, d=new Date(a.getFullYear(),a.getMonth(),a.getDate());
+  const end=new Date(b.getFullYear(),b.getMonth(),b.getDate());
+  while(d<=end){if(dayKind(d)!=='off')n++;d.setDate(d.getDate()+1);}
+  return n;
+}
+
+function updateSummary(rows) {
+  if (!rows || !rows.length) {
+    ['sv-estTotal','sv-actTotal','sv-variance','sv-estComp','sv-actComp','sv-workDays']
+      .forEach(id => { const el=document.getElementById(id); if(el){el.textContent='—';el.style.color='';} });
+    return;
+  }
+  const totalEst = rows.reduce((s,r)=>s+r.est,0);
+  const allAct = rows.every(r=>r.act!==null);
+  const anyAct = rows.some(r=>r.act!==null);
+  const totalAct = allAct ? rows.reduce((s,r)=>s+r.act,0) : null;
+  const variance = allAct ? totalAct - totalEst : null;
+  const last = rows[rows.length-1];
+  const lastAct = [...rows].reverse().find(r=>r.actE);
+
+  setText('sv-estTotal', fmins(totalEst));
+  setText('sv-actTotal', allAct ? fmins(totalAct) : anyAct ? 'Partial' : '—');
+  setText('sv-estComp', fdt(last.estE));
+  setText('sv-actComp', lastAct ? fdt(lastAct.actE) : '—');
+  setText('sv-workDays', countWorkDays(rows[0].estS, last.estE));
+
+  const varEl = document.getElementById('sv-variance');
+  if (variance !== null) {
+    varEl.textContent = fmins(variance);
+    varEl.style.color = variance>0?'var(--red)':variance<0?'var(--green)':'var(--accent)';
+  } else { varEl.textContent = '—'; varEl.style.color = ''; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Main recalc
+// ─────────────────────────────────────────────────────────────
+function recalc() {
+  loadCfg();
+  // Sync row-off classes
+  for (const st of STATIONS) {
+    if (!st.opt) continue;
+    const on = document.getElementById(`en_${st.id}`)?.checked;
+    document.getElementById(`row_${st.id}`)?.classList.toggle('row-off', !on);
+  }
+
+  const rows = calculate();
+  if (!rows || !rows.length) { hideChart(); updateSummary(null); return; }
+  const hasEst = rows.some(r=>r.est>0);
+  if (!hasEst) { hideChart(); updateSummary(null); return; }
+
+  updateTable(rows);
+  updateChart(rows);
+  updateSummary(rows);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Excel Export
+// ─────────────────────────────────────────────────────────────
+function exportToExcel() {
+  loadCfg();
+  const rows = calculate();
+  if (!rows || !rows.length) { alert('Please configure the schedule first.'); return; }
+
+  const wb = XLSX.utils.book_new();
+  const startDT = getStartDT();
+
+  // ── Schedule Sheet ──
+  const schedRows = [
+    ['RADEUS LABS INC — Manufacturing Line Simulator'],
+    [`Generated: ${new Date().toLocaleString()}`],
+    [`Job Start: ${fdt(rows[0].estS)}`],
+    [`Stations: ${rows.length}`],
+    [],
+    ['Station','Type','Est. Duration (min)','Est. Start','Est. End',
+     'Act. Duration (min)','Act. Start','Act. End','Variance (min)','Status'],
+    ...rows.map(r => {
+      const v = r.act !== null ? r.act - r.est : '';
+      const status = r.act===null?'Pending':v>0?'Over':v<0?'Under':'On Time';
+      return [
+        r.name, r.opt?'Optional':'Required',
+        r.est, fdt(r.estS), fdt(r.estE),
+        r.act??'', r.actE?fdt(r.actS):'', r.actE?fdt(r.actE):'',
+        v, status
+      ];
+    }),
+    [],
+    ['','TOTALS',
+     rows.reduce((s,r)=>s+r.est,0),'','',
+     rows.every(r=>r.act!==null)?rows.reduce((s,r)=>s+r.act,0):'Incomplete',
+     '','',
+     rows.every(r=>r.act!==null)?rows.reduce((s,r)=>s+r.act-r.est,0):'',''
+    ]
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(schedRows);
+  ws['!cols'] = [
+    {wch:12},{wch:10},{wch:20},{wch:22},{wch:22},
+    {wch:20},{wch:22},{wch:22},{wch:16},{wch:10}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Schedule');
+
+  // ── Work Calendar Sheet (90 days) ──
+  const calRows = [
+    ['RADEUS LABS — Work Calendar (90 Days)'],
+    [`Starting: ${startDT ? startDT.toLocaleDateString() : 'N/A'}`],
+    [],
+    ['Date','Day','Status','Build Start','Day End','Productive Hours','Notes']
+  ];
+
+  const calStart = rows[0].estS;
+  for (let i=0;i<90;i++) {
+    const d = new Date(calStart.getFullYear(), calStart.getMonth(), calStart.getDate()+i);
+    const k = dayKind(d);
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    if (k === 'off') {
+      const isFri = d.getDay()===5;
+      calRows.push([
+        d.toLocaleDateString(), dayNames[d.getDay()], 'OFF', '', '', '',
+        isFri ? 'Non-production Friday' : 'Weekend'
+      ]);
+    } else {
+      const sg = segs(d);
+      const prodMins = sg.reduce((s,seg)=>(s+(seg.e-seg.s)/60000),0);
+      const endHM = k==='short'?cfg.shortEnd:cfg.dayEnd;
+      calRows.push([
+        d.toLocaleDateString(), dayNames[d.getDay()],
+        k==='short'?'Short Friday':'Regular',
+        `${pad(cfg.buildStart.h)}:${pad(cfg.buildStart.m)}`,
+        `${pad(endHM.h)}:${pad(endHM.m)}`,
+        (prodMins/60).toFixed(2),
+        k==='short'?'Production Friday (short day)':''
+      ]);
+    }
+  }
+
+  const calWs = XLSX.utils.aoa_to_sheet(calRows);
+  calWs['!cols'] = [{wch:14},{wch:12},{wch:16},{wch:12},{wch:10},{wch:18},{wch:28}];
+  XLSX.utils.book_append_sheet(wb, calWs, 'Work Calendar');
+
+  // ── Config Sheet ──
+  const cfgRows = [
+    ['RADEUS LABS — Schedule Configuration'],
+    [],
+    ['Parameter','Value'],
+    ['Build Start Time', `${pad(cfg.buildStart.h)}:${pad(cfg.buildStart.m)}`],
+    ['Regular Day End', `${pad(cfg.dayEnd.h)}:${pad(cfg.dayEnd.m)}`],
+    ['Short Friday End', `${pad(cfg.shortEnd.h)}:${pad(cfg.shortEnd.m)}`],
+    [],
+    ['Break','Start','End','Duration (min)'],
+    ['Morning Break',
+     `${pad(cfg.breaks[0].s.h)}:${pad(cfg.breaks[0].s.m)}`,
+     `${pad(cfg.breaks[0].e.h)}:${pad(cfg.breaks[0].e.m)}`,
+     ((cfg.breaks[0].e.h*60+cfg.breaks[0].e.m)-(cfg.breaks[0].s.h*60+cfg.breaks[0].s.m))],
+    ['Lunch',
+     `${pad(cfg.breaks[1].s.h)}:${pad(cfg.breaks[1].s.m)}`,
+     `${pad(cfg.breaks[1].e.h)}:${pad(cfg.breaks[1].e.m)}`,
+     ((cfg.breaks[1].e.h*60+cfg.breaks[1].e.m)-(cfg.breaks[1].s.h*60+cfg.breaks[1].s.m))],
+    ['Afternoon Break',
+     `${pad(cfg.breaks[2].s.h)}:${pad(cfg.breaks[2].s.m)}`,
+     `${pad(cfg.breaks[2].e.h)}:${pad(cfg.breaks[2].e.m)}`,
+     ((cfg.breaks[2].e.h*60+cfg.breaks[2].e.m)-(cfg.breaks[2].s.h*60+cfg.breaks[2].s.m))],
+    [],
+    ['Schedule Notes',''],
+    ['Mon–Thu','Regular day'],
+    ['Every other Friday','Short day (ends '+`${pad(cfg.shortEnd.h)}:${pad(cfg.shortEnd.m)}`+')'],
+    ['Alternating Friday','Non-production (off)'],
+    ['Reference OFF Friday','Jun 6, 2025'],
+  ];
+
+  const cfgWs = XLSX.utils.aoa_to_sheet(cfgRows);
+  cfgWs['!cols'] = [{wch:22},{wch:16},{wch:16},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, cfgWs, 'Configuration');
+
+  const fname = `Radeus_Labs_Mfg_Schedule_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fname);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  buildTable();
+
+  // Default start date = next Monday
+  const today = new Date();
+  const wd = today.getDay();
+  const skip = wd===0?1:wd===6?2:0;
+  const def = new Date(today);
+  def.setDate(today.getDate() + skip);
+  document.getElementById('startDate').value =
+    `${def.getFullYear()}-${pad(def.getMonth()+1)}-${pad(def.getDate())}`;
+  document.getElementById('startTime').value = '08:00';
+
+  loadCfg();
+});
+</script>
+</body>
+</html>
