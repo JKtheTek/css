@@ -11,31 +11,32 @@
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#070d18;--surface:#0b1825;--surface2:#0f2030;--card:#0d1e30;
-  --border:#1a3550;--border2:#264d70;
-  --accent:#0093d0;--glow:rgba(0,147,208,.14);
-  --orange:#c8691a;--orange2:#e07820;
-  --text:#c0d8ec;--text2:#5e8aa8;--text3:#2e5570;
-  --green:#18c070;--red:#d83838;--yellow:#e8a820;
+  --bg:#08111e;--surface:#0c1928;--surface2:#101f30;--card:#0d1c2e;
+  --border:#1c3250;--border2:#283e60;
+  --accent:#1e3d7a;--accent2:#2a52a0;--glow:rgba(30,61,122,.22);
+  --rl-red:#c8192a;--rl-red2:#e0202e;--rglow:rgba(200,25,42,.22);
+  --orange:#c8192a;--orange2:#e0202e;
+  --text:#d4e4f0;--text2:#5c86a8;--text3:#2e4a65;
+  --green:#18c070;--red:#c8192a;--yellow:#e8a820;
   --hh:58px;--r:7px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;font-size:13px;min-height:100vh}
 
 /* HEADER */
-header{position:sticky;top:0;z-index:200;height:var(--hh);background:#030810;
-  border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:14px}
-.logo-hex{width:34px;height:34px;background:var(--accent);flex-shrink:0;
+header{position:sticky;top:0;z-index:200;height:var(--hh);background:#060e1a;
+  border-bottom:2px solid var(--rl-red);display:flex;align-items:center;padding:0 22px;gap:14px}
+.logo-hex{width:34px;height:34px;background:var(--rl-red);flex-shrink:0;
   clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff}
 .logo-text{line-height:1}
 .logo-main{display:block;font-size:15px;font-weight:800;letter-spacing:3.5px;color:#fff;text-transform:uppercase}
 .logo-sub{display:block;font-size:9px;letter-spacing:2.5px;color:var(--text2);margin-top:3px;text-transform:uppercase}
 .hspace{flex:1}
-.btn-hdr{background:var(--orange);border:none;color:#fff;padding:7px 16px;border-radius:4px;
+.btn-hdr{background:var(--rl-red);border:none;color:#fff;padding:7px 16px;border-radius:4px;
   font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;
-  cursor:pointer;transition:.2s}
-.btn-hdr:hover{background:var(--orange2)}
+  cursor:pointer;transition:.2s;text-transform:uppercase}
+.btn-hdr:hover{background:var(--rl-red2)}
 
 /* CHART BANNER */
 .chart-banner{position:sticky;top:var(--hh);z-index:190;background:var(--surface);
@@ -167,9 +168,9 @@ tbody tr:hover td{background:rgba(0,147,208,.03)}
 textarea.mfi{min-height:80px}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:4px;
   border-top:1px solid var(--border)}
-.btn-save{background:var(--accent);border:none;color:#fff;padding:8px 20px;border-radius:4px;
+.btn-save{background:var(--rl-red);border:none;color:#fff;padding:8px 20px;border-radius:4px;
   font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;cursor:pointer;transition:.2s}
-.btn-save:hover{background:#00aaf0}
+.btn-save:hover{background:var(--rl-red2)}
 .btn-clear{background:rgba(216,38,38,.15);border:1px solid rgba(216,38,38,.3);color:#ff8080;
   padding:8px 16px;border-radius:4px;font-family:'Montserrat',sans-serif;font-weight:600;
   font-size:11px;cursor:pointer;transition:.2s}
@@ -189,10 +190,10 @@ textarea.mfi{min-height:80px}
 
 /* RUN SIMULATION */
 .run-row{display:flex;align-items:center;gap:14px;padding:14px 0}
-.btn-run{background:var(--accent);border:none;color:#fff;padding:11px 28px;border-radius:5px;
+.btn-run{background:var(--rl-red);border:none;color:#fff;padding:11px 28px;border-radius:5px;
   font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;letter-spacing:1.5px;
   cursor:pointer;transition:.2s;text-transform:uppercase}
-.btn-run:hover{background:#00aaf0;box-shadow:0 0 18px rgba(0,147,208,.35)}
+.btn-run:hover{background:var(--rl-red2);box-shadow:0 0 18px var(--rglow)}
 .btn-run:active{transform:scale(.97)}
 .last-run{font-size:10px;color:var(--text3);letter-spacing:.5px}
 
@@ -202,7 +203,25 @@ textarea.mfi{min-height:80px}
   color:var(--text2);font-family:'Roboto Mono',monospace;font-size:10px;
   width:72px;padding:1px 2px;outline:none;cursor:pointer;transition:.15s}
 .unit-name-inp:hover{border-bottom-color:var(--text3);color:var(--text)}
-.unit-name-inp:focus{border-bottom-color:var(--accent);color:var(--text);cursor:text;width:100px}
+.unit-name-inp:focus{border-bottom-color:var(--rl-red);color:var(--text);cursor:text;width:100px}
+.btn-log-fail{background:none;border:1px solid rgba(200,25,42,.3);border-radius:3px;
+  color:rgba(200,25,42,.7);font-size:9px;font-weight:700;letter-spacing:.5px;
+  padding:1px 5px;cursor:pointer;transition:.15s;white-space:nowrap;font-family:'Montserrat',sans-serif}
+.btn-log-fail:hover{background:rgba(200,25,42,.15);border-color:var(--rl-red);color:var(--rl-red2)}
+.btn-log-fail.has-fail{background:rgba(200,25,42,.2);border-color:var(--rl-red);color:var(--rl-red2)}
+
+/* STATION PICKER MODAL */
+.station-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto}
+.sp-btn{display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  padding:10px 14px;cursor:pointer;transition:.15s;text-align:left;width:100%;gap:10px}
+.sp-btn:hover{border-color:var(--rl-red);background:rgba(200,25,42,.06)}
+.sp-btn.is-failed{border-color:rgba(200,25,42,.5);background:rgba(200,25,42,.1)}
+.sp-btn-name{font-size:12px;font-weight:600;color:var(--text);font-family:'Montserrat',sans-serif}
+.sp-btn-badge{font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 7px;
+  border-radius:3px;white-space:nowrap;text-transform:uppercase}
+.sp-btn-badge.fail{background:rgba(200,25,42,.25);border:1px solid rgba(200,25,42,.5);color:var(--rl-red2)}
+.sp-btn-badge.ok{background:rgba(24,192,112,.1);border:1px solid rgba(24,192,112,.25);color:var(--green)}
 
 footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
   letter-spacing:1.5px;border-top:1px solid var(--border);margin-top:8px}
@@ -328,6 +347,25 @@ footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
 </main>
 <footer>RADEUS LABS INC &nbsp;·&nbsp; POWAY, CA &nbsp;·&nbsp; MANUFACTURING OPERATIONS</footer>
 
+<!-- STATION PICKER MODAL -->
+<div class="modal-overlay" id="spModal">
+  <div class="modal-box">
+    <div class="modal-top">
+      <div class="modal-top-left">
+        <div class="modal-unit-dot" id="spDot"></div>
+        <div>
+          <div class="modal-title" id="spTitle">Log Station Failure</div>
+          <div class="modal-subtitle">Select the station to add or review a failure</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeStationPicker()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:14px 18px 18px">
+      <div class="station-list" id="spList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- FAILURE MODAL -->
 <div class="modal-overlay" id="failModal">
   <div class="modal-box">
@@ -432,6 +470,9 @@ function refreshLegend() {
   const container = document.getElementById('chartLegend');
   const items = unitNames.map((name, u) => {
     const c = UNIT_COLORS[u % UNIT_COLORS.length];
+    // Check if this unit has any failures
+    const hasFail = Object.entries(failures).some(([k, f]) =>
+      k.startsWith(`${u}_`) && f.isFailed);
     return `<div class="leg-item">
       <div class="leg-dot" style="background:${hexAlpha(c,.55)};border:1.5px solid ${c};flex-shrink:0"></div>
       <input class="unit-name-inp" value="${escHtml(name)}" data-unit="${u}"
@@ -439,11 +480,59 @@ function refreshLegend() {
              onclick="this.select()"
              onblur="onUnitNameEdit(${u}, this.value)"
              onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){this.value=unitNames[${u}];this.blur();}">
+      <button class="btn-log-fail${hasFail ? ' has-fail' : ''}"
+              onclick="openStationPicker(${u})"
+              title="Log or review failures for ${escHtml(name)}">
+        ${hasFail ? '⚠' : '+'}FAIL
+      </button>
     </div>`;
   });
   items.push(`<div class="leg"><div class="leg-dot fail"></div>Failed</div>`);
   container.innerHTML = items.join('');
 }
+
+// ── Station picker (easy failure logging from legend) ──────────
+let spUnitIdx = null;
+
+function openStationPicker(unitIdx) {
+  spUnitIdx = unitIdx;
+  const color = UNIT_COLORS[unitIdx % UNIT_COLORS.length];
+  const name  = unitNames[unitIdx] ?? `Unit ${unitIdx + 1}`;
+  document.getElementById('spDot').style.background = color;
+  document.getElementById('spTitle').textContent = `${name} — Log Failure`;
+
+  const sts = getActiveSts();
+  document.getElementById('spList').innerHTML = sts.map(st => {
+    const key  = `${unitIdx}_${st.id}`;
+    const fail = failures[key];
+    const failed = fail?.isFailed;
+    return `<button class="sp-btn${failed ? ' is-failed' : ''}"
+              onclick="openModalFromPicker(${unitIdx},'${st.id}')">
+      <span class="sp-btn-name">${st.name}</span>
+      <span class="sp-btn-badge ${failed ? 'fail' : 'ok'}">${failed ? '⚠ FAILED' : '✓ OK'}</span>
+    </button>`;
+  }).join('');
+
+  document.getElementById('spModal').classList.add('open');
+}
+
+function closeStationPicker() {
+  document.getElementById('spModal').classList.remove('open');
+  spUnitIdx = null;
+}
+
+function openModalFromPicker(unitIdx, stId) {
+  closeStationPicker();
+  const sts = getActiveSts();
+  const st  = sts.find(s => s.id === stId);
+  if (!st) return;
+  const row = lastUnits?.[unitIdx]?.find(r => r.id === stId);
+  openModal(unitIdx, st, row);
+}
+
+document.getElementById('spModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeStationPicker();
+});
 
 // ── Chart collapse toggle ──────────────────────────────────────
 function toggleChart() {
@@ -697,8 +786,9 @@ function updateChart(allUnits) {
   const labels = sts.map(s => s.name);
   const numUnits = allUnits.length;
 
-  // Adjust chart height: ~40px per station, min 200px
-  const h = Math.max(200, sts.length * 44 + 40);
+  // Height: enough room for all bars. barThickness * numUnits * stations + padding
+  const barH = Math.max(16, Math.min(32, 120 / numUnits));
+  const h = Math.max(220, sts.length * (barH * numUnits + 14) + 50);
   document.getElementById('chartWrap').style.height = h + 'px';
 
   // Build one dataset per unit
@@ -723,7 +813,7 @@ function updateChart(allUnits) {
       borderWidth: 1.5,
       borderRadius: 3,
       borderSkipped: false,
-      barPercentage: Math.min(0.85, 0.5 + 0.35 / Math.max(1, numUnits - 1)),
+      barThickness: Math.max(16, Math.min(32, 120 / numUnits)),
     };
   });
 
