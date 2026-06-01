@@ -179,6 +179,31 @@ textarea.mfi{min-height:80px}
   font-size:11px;cursor:pointer;transition:.2s}
 .btn-cancel:hover{color:var(--text)}
 
+/* CHART COLLAPSE */
+.chart-collapse{overflow:hidden;max-height:0;transition:max-height .4s ease,opacity .4s ease;opacity:0}
+.chart-collapse.open{max-height:900px;opacity:1}
+.btn-chart-toggle{background:none;border:1px solid var(--border);border-radius:4px;
+  color:var(--text2);font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:1px;padding:4px 10px;cursor:pointer;transition:.2s;white-space:nowrap}
+.btn-chart-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+/* RUN SIMULATION */
+.run-row{display:flex;align-items:center;gap:14px;padding:14px 0}
+.btn-run{background:var(--accent);border:none;color:#fff;padding:11px 28px;border-radius:5px;
+  font-family:'Montserrat',sans-serif;font-weight:800;font-size:13px;letter-spacing:1.5px;
+  cursor:pointer;transition:.2s;text-transform:uppercase}
+.btn-run:hover{background:#00aaf0;box-shadow:0 0 18px rgba(0,147,208,.35)}
+.btn-run:active{transform:scale(.97)}
+.last-run{font-size:10px;color:var(--text3);letter-spacing:.5px}
+
+/* UNIT NAME INPUTS IN LEGEND */
+.leg-item{display:flex;align-items:center;gap:5px}
+.unit-name-inp{background:transparent;border:none;border-bottom:1px solid transparent;
+  color:var(--text2);font-family:'Roboto Mono',monospace;font-size:10px;
+  width:72px;padding:1px 2px;outline:none;cursor:pointer;transition:.15s}
+.unit-name-inp:hover{border-bottom-color:var(--text3);color:var(--text)}
+.unit-name-inp:focus{border-bottom-color:var(--accent);color:var(--text);cursor:text;width:100px}
+
 footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
   letter-spacing:1.5px;border-top:1px solid var(--border);margin-top:8px}
 ::-webkit-scrollbar{width:6px;height:6px}
@@ -202,12 +227,15 @@ footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
 <div class="chart-banner">
   <div class="banner-top">
     <span class="banner-title">Production Timeline</span>
-    <span class="chart-hint">Click any bar to log a failure &nbsp;·&nbsp; Red = failed station</span>
+    <button class="btn-chart-toggle" id="chartToggleBtn" onclick="toggleChart()">&#9654; Show Timeline</button>
+    <span class="chart-hint">Click any bar to log a failure &nbsp;·&nbsp; Click a unit name to rename</span>
     <div class="legend" id="chartLegend"></div>
   </div>
-  <div class="chart-wrap" id="chartWrap" style="height:220px">
-    <div class="chart-empty" id="chartEmpty">Enter station times and a start date to generate timeline</div>
-    <canvas id="ganttChart" style="display:none"></canvas>
+  <div class="chart-collapse" id="chartCollapse">
+    <div class="chart-wrap" id="chartWrap" style="height:220px">
+      <div class="chart-empty" id="chartEmpty">Run the simulation to generate the timeline</div>
+      <canvas id="ganttChart" style="display:none"></canvas>
+    </div>
   </div>
 </div>
 
@@ -219,24 +247,24 @@ footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
   <div class="card-body">
     <div class="cfg-grid">
       <div class="cfg-sec">Job Start</div>
-      <div class="fg"><label>Start Date</label><input class="fi" type="date" id="startDate" oninput="recalc()"></div>
-      <div class="fg"><label>Start Time</label><input class="fi" type="time" id="startTime" value="08:00" oninput="recalc()"></div>
-      <div class="fg"><label>Number of Builds</label><input class="fi" type="number" id="numUnits" value="1" min="1" max="20" step="1" oninput="recalc()"></div>
+      <div class="fg"><label>Start Date</label><input class="fi" type="date" id="startDate"></div>
+      <div class="fg"><label>Start Time</label><input class="fi" type="time" id="startTime" value="08:00"></div>
+      <div class="fg"><label>Number of Builds</label><input class="fi" type="number" id="numUnits" value="1" min="1" max="20" step="1"></div>
       <div class="cfg-sep"></div>
       <div class="cfg-sec">Daily Schedule</div>
-      <div class="fg"><label>Build Start</label><input class="fi" type="time" id="buildStart" value="08:00" oninput="recalc()"></div>
-      <div class="fg"><label>Regular Day End</label><input class="fi" type="time" id="dayEnd" value="16:30" oninput="recalc()"></div>
-      <div class="fg"><label>Short Friday End</label><input class="fi" type="time" id="shortEnd" value="15:30" oninput="recalc()"></div>
+      <div class="fg"><label>Build Start</label><input class="fi" type="time" id="buildStart" value="08:00"></div>
+      <div class="fg"><label>Regular Day End</label><input class="fi" type="time" id="dayEnd" value="16:30"></div>
+      <div class="fg"><label>Short Friday End</label><input class="fi" type="time" id="shortEnd" value="15:30"></div>
       <div class="cfg-sep"></div>
       <div class="cfg-sec">Breaks</div>
       <div class="fg"><label>Morning Break</label>
-        <div class="brk-row"><input class="fi" type="time" id="brk1s" value="09:00" oninput="recalc()"><span>→</span><input class="fi" type="time" id="brk1e" value="09:15" oninput="recalc()"></div>
+        <div class="brk-row"><input class="fi" type="time" id="brk1s" value="09:00"><span>→</span><input class="fi" type="time" id="brk1e" value="09:15"></div>
       </div>
       <div class="fg"><label>Lunch</label>
-        <div class="brk-row"><input class="fi" type="time" id="lncs" value="11:30" oninput="recalc()"><span>→</span><input class="fi" type="time" id="lnce" value="12:00" oninput="recalc()"></div>
+        <div class="brk-row"><input class="fi" type="time" id="lncs" value="11:30"><span>→</span><input class="fi" type="time" id="lnce" value="12:00"></div>
       </div>
       <div class="fg"><label>Afternoon Break</label>
-        <div class="brk-row"><input class="fi" type="time" id="brk2s" value="14:30" oninput="recalc()"><span>→</span><input class="fi" type="time" id="brk2e" value="14:45" oninput="recalc()"></div>
+        <div class="brk-row"><input class="fi" type="time" id="brk2s" value="14:30"><span>→</span><input class="fi" type="time" id="brk2e" value="14:45"></div>
       </div>
     </div>
     <p style="font-size:10px;color:var(--text3);margin-top:12px">
@@ -244,6 +272,12 @@ footer{text-align:center;padding:22px;color:var(--text3);font-size:10px;
       Reference off-Friday: <strong style="color:var(--text2)">Jun 6, 2025</strong>
     </p>
   </div>
+</div>
+
+<!-- RUN SIMULATION -->
+<div class="run-row">
+  <button class="btn-run" onclick="runSimulation()">&#9654;&nbsp; Run Simulation</button>
+  <span class="last-run" id="lastRun"></span>
 </div>
 
 <!-- STATIONS -->
@@ -366,6 +400,72 @@ let failures = {};      // key: `${unitIdx}_${stationId}` → {isFailed, desc, n
 let ganttChart = null;
 let modalCtx  = null;   // {unitIdx, stationId, stationName, color}
 let lastUnits = null;   // cached calculateAll() result
+let unitNames = [];     // display names, one per unit
+
+// ── Unit naming ────────────────────────────────────────────────
+function incrementName(name, offset) {
+  const m = name.match(/^([\s\S]*?)(\d+)$/);
+  if (!m) return name;
+  const prefix = m[1], digits = m[2];
+  const n = parseInt(digits, 10) + offset;
+  return prefix + String(n).padStart(Math.max(digits.length, String(n).length), '0');
+}
+
+function onUnitNameEdit(unitIdx, rawVal) {
+  const name = rawVal.trim() || `Unit ${unitIdx + 1}`;
+  unitNames[unitIdx] = name;
+  // Auto-increment all subsequent units
+  for (let u = unitIdx + 1; u < unitNames.length; u++) {
+    unitNames[u] = incrementName(name, u - unitIdx);
+  }
+  refreshLegend();
+  // Sync chart dataset labels without full re-render
+  if (ganttChart) {
+    ganttChart.data.datasets.forEach((ds, u) => {
+      if (unitNames[u] !== undefined) ds.label = unitNames[u];
+    });
+    ganttChart.update('none');
+  }
+}
+
+function refreshLegend() {
+  const container = document.getElementById('chartLegend');
+  const items = unitNames.map((name, u) => {
+    const c = UNIT_COLORS[u % UNIT_COLORS.length];
+    return `<div class="leg-item">
+      <div class="leg-dot" style="background:${hexAlpha(c,.55)};border:1.5px solid ${c};flex-shrink:0"></div>
+      <input class="unit-name-inp" value="${escHtml(name)}" data-unit="${u}"
+             title="Click to rename · Type a number suffix to auto-increment remaining units"
+             onclick="this.select()"
+             onblur="onUnitNameEdit(${u}, this.value)"
+             onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){this.value=unitNames[${u}];this.blur();}">
+    </div>`;
+  });
+  items.push(`<div class="leg"><div class="leg-dot fail"></div>Failed</div>`);
+  container.innerHTML = items.join('');
+}
+
+// ── Chart collapse toggle ──────────────────────────────────────
+function toggleChart() {
+  const el  = document.getElementById('chartCollapse');
+  const btn = document.getElementById('chartToggleBtn');
+  const open = el.classList.toggle('open');
+  btn.textContent = open ? '▼ Hide Timeline' : '▶ Show Timeline';
+}
+
+// ── Run Simulation ─────────────────────────────────────────────
+function runSimulation() {
+  recalc();
+  // Auto-expand the chart
+  const el  = document.getElementById('chartCollapse');
+  const btn = document.getElementById('chartToggleBtn');
+  if (!el.classList.contains('open')) {
+    el.classList.add('open');
+    btn.textContent = '▼ Hide Timeline';
+  }
+  const ts = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById('lastRun').textContent = `Last run: ${ts}`;
+}
 
 // ── Schedule helpers ───────────────────────────────────────────
 function pt(id, fallback) {
@@ -465,6 +565,7 @@ function getStartDT() {
   if (!dv) return null;
   const [y,mo,d] = dv.split('-').map(Number);
   const [h,m] = tv.split(':').map(Number);
+  if (y < 2020 || y > 2100) return null; // reject out-of-range years
   return new Date(y, mo-1, d, h, m);
 }
 
@@ -529,17 +630,19 @@ function calculateAll() {
 function buildTable() {
   document.getElementById('stbody').innerHTML = STATIONS.map((st, idx) => {
     const color = ST_COLORS[idx % ST_COLORS.length];
-    return `<tr id="row_${st.id}" class="${st.opt?'opt-row':''}">
+    // Optional stations start OFF (unchecked, row grayed)
+    const startOff = st.opt;
+    return `<tr id="row_${st.id}"${startOff ? ' class="row-off"' : ''}>
       <td><div class="sname">
         <div class="scolor" style="background:${color}"></div>
         <span class="badge ${st.opt?'opt':'req'}">${st.opt?'OPT':'REQ'}</span>${st.name}
       </div></td>
       <td class="col-en">${st.opt
-        ? `<label class="tog"><input type="checkbox" id="en_${st.id}" checked onchange="onToggle('${st.id}')"><span class="tslider"></span></label>`
+        ? `<label class="tog"><input type="checkbox" id="en_${st.id}" onchange="onToggle('${st.id}')"><span class="tslider"></span></label>`
         : `<span class="always-on" title="Required">&#11044;</span>`}</td>
-      <td><input class="ni" type="number" id="est_${st.id}" min="0" step="1" placeholder="0" oninput="recalc()"></td>
-      <td><input class="ni wk" type="number" id="wk_${st.id}" value="1" min="1" max="20" step="1" oninput="recalc()" title="Workers at this station (parallel capacity)"></td>
-      <td><input class="ni act" type="number" id="act_${st.id}" min="0" step="1" placeholder="—" oninput="recalc()"></td>
+      <td><input class="ni" type="number" id="est_${st.id}" min="0" step="1" placeholder="0"></td>
+      <td><input class="ni wk" type="number" id="wk_${st.id}" value="1" min="1" max="20" step="1" title="Workers at this station (parallel capacity)"></td>
+      <td><input class="ni act" type="number" id="act_${st.id}" min="0" step="1" placeholder="—"></td>
       <td class="rc" id="vr_${st.id}">—</td>
     </tr>`;
   }).join('');
@@ -548,27 +651,37 @@ function buildTable() {
 function onToggle(id) {
   const on = document.getElementById(`en_${id}`)?.checked;
   document.getElementById(`row_${id}`)?.classList.toggle('row-off', !on);
-  recalc();
 }
 
 // ── Chart ──────────────────────────────────────────────────────
+function xBounds(datasets) {
+  const ts = [];
+  for (const ds of datasets) {
+    for (const d of ds.data) {
+      if (d && Array.isArray(d)) { ts.push(d[0], d[1]); }
+    }
+  }
+  if (!ts.length) {
+    const now = Date.now();
+    return [now, now + 8 * 3600000]; // fallback: 8-hour window from now
+  }
+  const mn = Math.min(...ts), mx = Math.max(...ts);
+  const pad = Math.max((mx - mn) * 0.06, 1800000); // ≥30 min padding each side
+  return [mn - pad, mx + pad];
+}
+
 function hexAlpha(hex, a) {
   const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
 }
 
-function buildLegend(numUnits) {
-  const container = document.getElementById('chartLegend');
-  const items = [];
-  for (let u = 0; u < Math.min(numUnits, UNIT_COLORS.length); u++) {
-    const c = UNIT_COLORS[u % UNIT_COLORS.length];
-    items.push(`<div class="leg">
-      <div class="leg-dot" style="background:${hexAlpha(c,.55)};border:1.5px solid ${c}"></div>
-      Unit ${u+1}
-    </div>`);
+// buildLegend now delegates to refreshLegend (which uses unitNames state)
+function buildLegend(n) {
+  if (!unitNames.length) {
+    // Show placeholder legend with default names if no simulation run yet
+    unitNames = Array.from({length: n}, (_, u) => `Unit ${u + 1}`);
   }
-  items.push(`<div class="leg"><div class="leg-dot fail"></div>Failed</div>`);
-  container.innerHTML = items.join('');
+  refreshLegend();
 }
 
 function updateChart(allUnits) {
@@ -592,7 +705,7 @@ function updateChart(allUnits) {
   const datasets = allUnits.map((unitRows, u) => {
     const baseColor = UNIT_COLORS[u % UNIT_COLORS.length];
     return {
-      label: `Unit ${u + 1}`,
+      label: unitNames[u] ?? `Unit ${u + 1}`,
       data: sts.map(st => {
         const row = unitRows.find(r => r.id === st.id);
         return row && row.est > 0 ? [row.estS.getTime(), row.estE.getTime()] : null;
@@ -614,9 +727,13 @@ function updateChart(allUnits) {
     };
   });
 
+  const [xMin, xMax] = xBounds(datasets);
+
   if (ganttChart) {
     ganttChart.data.labels = labels;
     ganttChart.data.datasets = datasets;
+    ganttChart.options.scales.x.min = xMin;
+    ganttChart.options.scales.x.max = xMax;
     ganttChart.update('active');
     return;
   }
@@ -664,7 +781,9 @@ function updateChart(allUnits) {
       scales: {
         x: {
           type: 'time',
-          time: {displayFormats:{hour:'MM/dd HH:mm',day:'MM/dd'},tooltipFormat:'MM/dd HH:mm'},
+          min: xMin,
+          max: xMax,
+          time: {displayFormats:{hour:'MM/dd HH:mm',day:'MM/dd',week:'MM/dd/yy'},tooltipFormat:'MM/dd/yy HH:mm'},
           grid: {color:'rgba(100,160,200,.06)'},
           ticks: {color:'#3a6080',maxRotation:30,font:{size:10,family:'Roboto Mono'}}
         },
@@ -766,7 +885,7 @@ function updateFailureLog(allUnits, sts) {
       <div class="fail-item-icon">⚠</div>
       <div class="fail-item-body">
         <div class="fail-item-title">
-          <span style="color:${color}">Unit ${uIdx+1}</span>
+          <span style="color:${color}">${unitNames[uIdx] ?? `Unit ${uIdx+1}`}</span>
           &nbsp;—&nbsp; ${st.name}
           ${row ? `&nbsp;<span style="font-size:9px;color:var(--text3)">${fdt(row.estS)} → ${fdt(row.estE)}</span>` : ''}
         </div>
@@ -799,6 +918,18 @@ function recalc() {
     document.getElementById(`row_${st.id}`)?.classList.toggle('row-off', !on);
   }
 
+  const n = getNumUnits();
+  // Re-initialize unitNames only if the count changed; preserve existing names otherwise
+  if (unitNames.length !== n) {
+    const prev = unitNames.slice();
+    unitNames = Array.from({length: n}, (_, u) => {
+      if (prev[u]) return prev[u]; // keep existing name
+      // Auto-increment from last known named unit
+      const base = prev[prev.length - 1] ?? `Unit ${u + 1}`;
+      return incrementName(base, u - (prev.length - 1));
+    });
+  }
+
   const allUnits = calculateAll();
   lastUnits = allUnits;
   const sts = getActiveSts();
@@ -807,7 +938,7 @@ function recalc() {
   updateChart(allUnits);
   updateSummary(allUnits, sts);
   updateFailureLog(allUnits, sts);
-  buildLegend(getNumUnits());
+  refreshLegend();
 }
 
 // ── Failure modal ──────────────────────────────────────────────
@@ -818,7 +949,7 @@ function openModal(unitIdx, st, row) {
   const f = failures[key] || {};
 
   document.getElementById('mDot').style.background = color;
-  document.getElementById('mTitle').textContent = `Unit ${unitIdx+1} — ${st.name}`;
+  document.getElementById('mTitle').textContent = `${unitNames[unitIdx] ?? `Unit ${unitIdx+1}`} — ${st.name}`;
   document.getElementById('mSub').textContent = row
     ? `${fdt(row.estS)} → ${fdt(row.estE)}  (${fmins(st.est)} estimated)`
     : '';
@@ -992,15 +1123,19 @@ function exportToExcel() {
 document.addEventListener('DOMContentLoaded', () => {
   buildTable();
   const today = new Date();
+  const yr = today.getFullYear();
   const wd = today.getDay();
   const skip = wd===0?1:wd===6?2:0;
   const def = new Date(today);
   def.setDate(today.getDate()+skip);
-  document.getElementById('startDate').value =
-    `${def.getFullYear()}-${pad(def.getMonth()+1)}-${pad(def.getDate())}`;
+  const dateEl = document.getElementById('startDate');
+  dateEl.min = `${yr}-01-01`;
+  dateEl.max = `${yr + 5}-12-31`;
+  dateEl.value = `${def.getFullYear()}-${pad(def.getMonth()+1)}-${pad(def.getDate())}`;
   document.getElementById('startTime').value = '08:00';
   loadCfg();
-  buildLegend(1);
+  unitNames = ['Unit 1'];
+  refreshLegend();
 });
 </script>
 </body>
